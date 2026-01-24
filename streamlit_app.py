@@ -1,131 +1,237 @@
 import streamlit as st
-import re
 from datetime import datetime
-from collections import defaultdict
+from log_parser import AdvancedLogParser
+from correlator import EventCorrelator
 
-st.set_page_config(page_title="AI Security Log Analyzer", page_icon="🛡️", layout="wide")
+# Page config
+st.set_page_config(
+    page_title="AI Security Log Analyzer",
+    page_icon="🛡️",
+    layout="wide"
+)
 
+# Title
 st.markdown('<h1 style="text-align: center; color: #667eea;">🛡️ AI Security Log Analyzer</h1>', unsafe_allow_html=True)
-st.markdown("### Automate threat detection with artificial intelligence")
+st.markdown("### Enterprise-Grade Threat Detection with MITRE ATT&CK Mapping")
 
-# Sample data
-SAMPLE_LOGS = """2024-01-15 10:23:45 Failed login attempt from 192.168.1.100 for user admin
-2024-01-15 10:23:50 Failed login attempt from 192.168.1.100 for user root
-2024-01-15 10:23:55 Failed login attempt from 192.168.1.100 for user administrator
-2024-01-15 10:24:00 Failed login attempt from 192.168.1.100 for user admin
-2024-01-15 11:15:22 Port scan detected from 203.0.113.50 scanning ports 22-1024
-2024-01-15 11:15:30 Firewall blocked connection from 203.0.113.50 to port 445
-2024-01-15 14:30:12 Malware signature detected in file download from 198.51.100.25
-2024-01-15 14:30:15 Critical: Ransomware activity detected on host WORKSTATION-05"""
+# Sample logs
+SAMPLE_LOGS = """user=root action=failed_login src_ip=198.51.100.23 method=ssh timestamp=2024-01-15T10:00:01
+user=root action=failed_login src_ip=198.51.100.23 method=ssh timestamp=2024-01-15T10:00:05
+user=root action=failed_login src_ip=198.51.100.23 method=ssh timestamp=2024-01-15T10:00:10
+user=root action=failed_login src_ip=198.51.100.23 method=ssh timestamp=2024-01-15T10:00:15
+src_ip=198.51.100.23 dst_port=22 action=blocked timestamp=2024-01-15T10:00:20
+threat=Ransomware.Agent action=isolated host=DESKTOP-WIN10 timestamp=2024-01-15T14:30:00
+EventName=ConsoleLogin Failure user=unknown src_ip=45.33.32.156 timestamp=2024-01-15T16:00:00
+EventName=CreateAccessKey user=admin src_ip=45.33.32.156 timestamp=2024-01-15T16:00:30
+AzureAD MFA Bypass Attempt user=admin@company.com src_ip=203.0.113.45 timestamp=2024-01-15T18:00:00
+PrivilegeEscalation status=Denied user=guest action=sudo timestamp=2024-01-15T20:00:00"""
 
-def parse_log(line):
-    ip_pattern = r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b'
-    ips = re.findall(ip_pattern, line)
+# Sidebar
+with st.sidebar:
+    st.markdown("### 🎯 Features")
+    st.info("""
+    ✅ Splunk/SIEM Log Support  
+    ✅ AWS CloudTrail Events  
+    ✅ Azure AD Logs  
+    ✅ MITRE ATT&CK Mapping  
+    ✅ Enterprise Correlation  
+    """)
     
-    severity = 'HIGH' if any(w in line.lower() for w in ['critical', 'failed', 'ransomware']) else 'MEDIUM'
+    st.markdown("### 🔍 Detection Types")
+    st.markdown("""
+    - 🔐 Brute Force Attacks
+    - 🌐 Port Scanning
+    - 🦠 Ransomware/Malware
+    - ☁️ Cloud Credential Abuse
+    - 🔑 MFA Bypass
+    - ⬆️ Privilege Escalation
+    """)
     
-    event_type = 'GENERAL'
-    if 'failed' in line.lower() and 'login' in line.lower():
-        event_type = 'FAILED_LOGIN'
-    elif 'port scan' in line.lower():
-        event_type = 'PORT_SCAN'
-    elif any(w in line.lower() for w in ['malware', 'ransomware']):
-        event_type = 'MALWARE'
-    
-    return {'raw': line, 'ips': ips, 'severity': severity, 'type': event_type}
+    st.markdown("---")
+    st.markdown("**Created by:** Ayesha Siddiqui")
+    st.markdown("[GitHub](https://github.com/ayeshasq/security-log-analyzer)")
 
-def analyze_logs(log_text):
-    lines = [l.strip() for l in log_text.split('\n') if l.strip()]
-    parsed = [parse_log(l) for l in lines]
-    
-    # Group by IP
-    ip_events = defaultdict(list)
-    for log in parsed:
-        for ip in log['ips']:
-            ip_events[ip].append(log)
-    
-    incidents = []
-    for ip, events in ip_events.items():
-        failed = [e for e in events if e['type'] == 'FAILED_LOGIN']
-        if len(failed) >= 3:
-            incidents.append({
-                'type': 'BRUTE_FORCE_ATTACK',
-                'severity': 'HIGH',
-                'ip': ip,
-                'count': len(failed),
-                'events': failed
-            })
-        
-        scans = [e for e in events if e['type'] == 'PORT_SCAN']
-        if scans:
-            incidents.append({
-                'type': 'PORT_SCAN_DETECTED',
-                'severity': 'MEDIUM',
-                'ip': ip,
-                'count': len(scans),
-                'events': scans
-            })
-        
-        malware = [e for e in events if e['type'] == 'MALWARE']
-        if malware:
-            incidents.append({
-                'type': 'MALWARE_DETECTED',
-                'severity': 'CRITICAL',
-                'ip': ip,
-                'count': len(malware),
-                'events': malware
-            })
-    
-    return parsed, incidents
-
-# Main UI
-tab1, tab2 = st.tabs(["📝 Analyze Logs", "📚 Sample Data"])
+# Main content
+tab1, tab2, tab3 = st.tabs(["📝 Analyze Logs", "📚 Sample Formats", "ℹ️ About"])
 
 with tab1:
-    st.header("Upload or Paste Security Logs")
+    st.header("Security Log Analysis")
     
-    use_sample = st.checkbox("Use sample data", value=True)
+    input_method = st.radio("Input Method:", ["Use Sample Data", "Paste Custom Logs", "Upload File"])
     
-    if use_sample:
-        log_input = st.text_area("Security Logs:", value=SAMPLE_LOGS, height=200)
-    else:
-        log_input = st.text_area("Paste your logs here:", height=200, placeholder="2024-01-15 10:23:45 Failed login...")
+    log_input = ""
     
-    if st.button("🔍 Analyze Logs", type="primary"):
-        if log_input:
-            with st.spinner("Analyzing..."):
-                parsed, incidents = analyze_logs(log_input)
+    if input_method == "Use Sample Data":
+        st.success("Using built-in enterprise attack scenarios (Splunk/CloudTrail/Azure)")
+        with st.expander("Preview Sample Logs"):
+            st.code(SAMPLE_LOGS, language="log")
+        log_input = SAMPLE_LOGS
+        
+    elif input_method == "Paste Custom Logs":
+        log_input = st.text_area(
+            "Paste your security logs:",
+            height=300,
+            placeholder="user=admin action=failed_login src_ip=192.168.1.100..."
+        )
+        
+    else:  # Upload File
+        uploaded_file = st.file_uploader("Upload log file", type=["log", "txt"])
+        if uploaded_file:
+            log_input = uploaded_file.read().decode("utf-8")
+            st.success(f"✅ Uploaded: {uploaded_file.name}")
+    
+    if st.button("🔍 Analyze Logs", type="primary", use_container_width=True):
+        if not log_input:
+            st.error("⚠️ Please provide log data")
+        else:
+            with st.spinner("Analyzing security logs..."):
+                # Parse logs
+                lines = [l.strip() for l in log_input.split('\n') if l.strip()]
                 
+                parser = AdvancedLogParser()
+                parsed = [parser.parse_line(l) for l in lines]
+                
+                # Correlate events
+                correlator = EventCorrelator()
+                incidents = correlator.correlate_events(parsed)
+                
+                # Display results
                 st.success(f"✅ Analyzed {len(parsed)} log entries")
                 st.success(f"✅ Found {len(incidents)} security incidents")
                 
-                col1, col2, col3 = st.columns(3)
+                # Metrics
+                col1, col2, col3, col4 = st.columns(4)
                 col1.metric("Total Logs", len(parsed))
                 col2.metric("Incidents", len(incidents))
-                col3.metric("High Severity", sum(1 for i in incidents if i['severity'] == 'HIGH'))
                 
-                st.markdown("---")
-                st.subheader("🚨 Detected Incidents")
+                high_sev = sum(1 for i in incidents if i['severity'] in ['HIGH', 'CRITICAL'])
+                col3.metric("High/Critical", high_sev)
                 
-                for i, inc in enumerate(incidents, 1):
-                    with st.expander(f"{'🔴' if inc['severity']=='HIGH' else '🟡'} Incident #{i}: {inc['type']}", expanded=True):
-                        st.write(f"**Severity:** {inc['severity']}")
-                        st.write(f"**Source IP:** {inc['ip']}")
-                        st.write(f"**Event Count:** {inc['count']}")
+                platforms = set(p['platform'] for p in parsed if p['platform'] != 'Generic')
+                col4.metric("Platforms", len(platforms) if platforms else 1)
+                
+                if incidents:
+                    st.markdown("---")
+                    st.subheader("🚨 Detected Security Incidents")
+                    
+                    for i, inc in enumerate(incidents, 1):
+                        # Color based on severity
+                        if inc['severity'] == 'CRITICAL':
+                            emoji = "🔴"
+                            color = "red"
+                        elif inc['severity'] == 'HIGH':
+                            emoji = "🟠"
+                            color = "orange"
+                        else:
+                            emoji = "🟡"
+                            color = "yellow"
                         
-                        if inc['type'] == 'BRUTE_FORCE_ATTACK':
-                            st.warning("⚠️ Multiple failed login attempts detected. Recommend: Block IP, enable MFA, review logs.")
-                        elif inc['type'] == 'PORT_SCAN_DETECTED':
-                            st.info("ℹ️ Network reconnaissance detected. Recommend: Block IP, review firewall rules.")
-                        elif inc['type'] == 'MALWARE_DETECTED':
-                            st.error("🚨 Malware activity detected! Recommend: Isolate host, scan all systems, check for data exfiltration.")
-                        
-                        st.code('\n'.join(e['raw'] for e in inc['events'][:3]))
+                        with st.expander(f"{emoji} Incident #{i}: {inc['type']} - {inc['severity']}", expanded=True):
+                            col_a, col_b = st.columns(2)
+                            
+                            with col_a:
+                                st.markdown(f"**Type:** {inc['type']}")
+                                st.markdown(f"**Severity:** {inc['severity']}")
+                                st.markdown(f"**Source:** {inc.get('source_ip', 'N/A')}")
+                                
+                            with col_b:
+                                st.markdown(f"**Event Count:** {inc['event_count']}")
+                                if inc.get('mitre'):
+                                    st.markdown(f"**MITRE ATT&CK:** {inc['mitre']}")
+                            
+                            st.markdown("---")
+                            st.markdown("**Description:**")
+                            st.info(inc['description'])
+                            
+                            if inc.get('recommendations'):
+                                st.markdown("**Recommended Actions:**")
+                                for rec in inc['recommendations']:
+                                    st.markdown(f"- {rec}")
+                            
+                            st.markdown("**Sample Events:**")
+                            for j, event in enumerate(inc['events'][:3], 1):
+                                st.code(f"{j}. {event['raw']}", language="log")
+                else:
+                    st.info("No security incidents detected in the provided logs.")
 
 with tab2:
-    st.header("📚 Sample Log Examples")
-    st.code(SAMPLE_LOGS, language="log")
-    st.info("Copy these examples to test the analyzer!")
+    st.header("📚 Supported Log Formats")
+    
+    st.subheader("1️⃣ Splunk/Key-Value Format")
+    st.code("""user=admin action=failed_login src_ip=192.168.1.100 method=ssh
+user=admin action=failed_login src_ip=192.168.1.100 method=ssh
+user=admin action=failed_login src_ip=192.168.1.100 method=ssh""", language="log")
+    
+    st.subheader("2️⃣ AWS CloudTrail Events")
+    st.code("""EventName=ConsoleLogin Failure user=unknown src_ip=45.33.32.156
+EventName=CreateAccessKey user=admin src_ip=45.33.32.156
+EventName=AssumeRole user=attacker src_ip=45.33.32.156""", language="log")
+    
+    st.subheader("3️⃣ Azure AD Security Logs")
+    st.code("""AzureAD MFA Bypass Attempt user=admin@company.com src_ip=203.0.113.45
+AzureAD SignIn Failure user=admin@company.com src_ip=203.0.113.45""", language="log")
+    
+    st.subheader("4️⃣ Endpoint Security")
+    st.code("""threat=Ransomware.Agent action=isolated host=DESKTOP-WIN10
+threat=Malware.Trojan action=quarantined host=LAPTOP-USER5
+PrivilegeEscalation status=Denied user=guest action=sudo""", language="log")
+    
+    st.subheader("5️⃣ Firewall Logs")
+    st.code("""src_ip=198.51.100.23 dst_port=22 action=blocked
+src_ip=198.51.100.23 dst_port=445 action=blocked
+src_ip=198.51.100.23 dst_port=3389 action=blocked""", language="log")
 
+with tab3:
+    st.header("ℹ️ About This Tool")
+    
+    st.markdown("""
+    ### 🛡️ Enterprise Security Log Analyzer
+    
+    An advanced security tool that uses pattern recognition and correlation 
+    to detect sophisticated attacks across multiple platforms.
+    
+    ### 🎯 Key Features:
+    
+    - **Multi-Platform Support**: Splunk, AWS CloudTrail, Azure AD, Syslog
+    - **Advanced Correlation**: Groups related events to detect attack chains
+    - **MITRE ATT&CK**: Maps incidents to MITRE framework
+    - **Real-Time Analysis**: Processes logs in seconds
+    - **Actionable Reports**: Provides specific remediation steps
+    
+    ### 🔍 Detection Capabilities:
+    
+    | Attack Type | MITRE Technique |
+    |------------|-----------------|
+    | Brute Force | T1110 |
+    | Privilege Escalation | T1068 |
+    | Ransomware | T1486 |
+    | Credential Abuse | T1078 |
+    | MFA Bypass | T1556 |
+    | Port Scanning | T1046 |
+    
+    ### 💻 Technology Stack:
+    
+    - Python 3.10+
+    - Advanced Pattern Recognition
+    - Event Correlation Engine
+    - Streamlit Web Framework
+    
+    ### 📊 Why This Matters:
+    
+    Traditional SIEM tools often miss sophisticated attacks that span 
+    multiple events. This analyzer uses intelligent correlation to 
+    detect attack patterns that would otherwise go unnoticed.
+    """)
+    
+    st.markdown("---")
+    st.success("🎓 Built for portfolio demonstration and educational purposes")
+
+# Footer
 st.markdown("---")
-st.markdown("<p style='text-align: center;'>🛡️ Built by Ayesha Siddiqui | <a href='https://github.com/ayeshasq/security-log-analyzer'>GitHub</a></p>", unsafe_allow_html=True)
+st.markdown("""
+<div style='text-align: center; color: #666;'>
+    <p>🛡️ Enterprise Security Log Analyzer | Built by Ayesha Siddiqui</p>
+    <p><a href='https://github.com/ayeshasq/security-log-analyzer'>GitHub</a> | 
+    <a href='https://linkedin.com/in/yourprofile'>LinkedIn</a></p>
+</div>
+""", unsafe_allow_html=True)
