@@ -171,7 +171,7 @@ Share it with other cybersecurity students and professionals.
 ## 📚 Learn More
 
 - **[Full Documentation](DOCUMENTATION.md)** - Complete setup and API reference
-- **[Demo Examples](DEMO.md)** - See it in action with sample scenarios
+- Deployed tryout: https://security-log-analyzer-cyberproject.streamlit.app
 
 ---
 
