@@ -1,0 +1,35 @@
+Add:
+```
+# Environment and credentials
+.env
+*.env
+
+# Virtual environment
+venv/
+env/
+ENV/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Generated outputs
+outputs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Backups
+*.backup
+*.bak
