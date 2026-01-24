@@ -105,4 +105,4 @@ class SecurityLogAnalyzer:
 
 if __name__ == "__main__":
     analyzer = SecurityLogAnalyzer()
-    analyzer.analyze_logs("logs/sample_security.log")
+    analyzer.analyze_logs("logs/enterprise_attacks.log")
