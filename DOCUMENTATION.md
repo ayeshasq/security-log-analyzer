@@ -1,4 +1,4 @@
-📚 Complete Documentation - AI-Powered Security Log Analyzer
+Complete Documentation - AI-Powered Security Log Analyzer
 Table of Contents
 Installation Guide
 Configuration
