@@ -7,7 +7,7 @@ from datetime import datetime
 import os
 
 class EmailAlerter:
-    """Send email alerts for critical security incidents"""
+    """Send email alerts for critical security incidents to fkmade email"""
     
     def __init__(self):
         self.use_mock = True  # Set to False when you have real SMTP credentials
