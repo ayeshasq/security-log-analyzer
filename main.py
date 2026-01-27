@@ -11,7 +11,7 @@ from email_alerts import EmailAlerter
 init()
 
 class SecurityLogAnalyzer:
-    """Main application orchestrator"""
+    """Main application orchestrator here"""
     
     def __init__(self):
         self.parser = LogParser()
@@ -85,7 +85,7 @@ class SecurityLogAnalyzer:
         self._save_report(incidents, executive_summary)
     
     def _display_results(self, incidents, summary):
-        """Display analysis results"""
+        """Display analysis results below"""
         
         print(f"\n{Fore.CYAN}{'='*80}{Style.RESET_ALL}")
         print(f"{Fore.CYAN}EXECUTIVE SUMMARY{Style.RESET_ALL}")
