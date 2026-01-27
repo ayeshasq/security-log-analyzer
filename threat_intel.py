@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class ThreatIntelligence:
-    """Check IPs against threat intelligence databases"""
+    """Check IP addrs against threat intelligence databases made"""
     
     def __init__(self):
         self.api_key = os.getenv('ABUSEIPDB_API_KEY')
