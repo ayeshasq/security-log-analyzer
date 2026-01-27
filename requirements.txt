@@ -1,4 +1,7 @@
 streamlit
+anthropic
 pandas
 numpy
 colorama
+python-dotenv
+requests

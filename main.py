@@ -5,7 +5,7 @@ from colorama import init, Fore, Style
 import json
 from datetime import datetime
 
-init()  # Initialize colorama
+init()
 
 class SecurityLogAnalyzer:
     """Main application orchestrator"""
@@ -64,10 +64,23 @@ class SecurityLogAnalyzer:
         print(f"{Fore.CYAN}{'='*80}{Style.RESET_ALL}\n")
         
         for i, incident in enumerate(incidents, 1):
-            severity_color = Fore.RED if incident['severity'] == 'HIGH' else Fore.YELLOW
+            severity_color = Fore.RED if incident['severity'] in ['HIGH', 'CRITICAL'] else Fore.YELLOW
             
             print(f"{severity_color}[Incident #{i}] {incident['type']}{Style.RESET_ALL}")
             print(f"Severity: {severity_color}{incident['severity']}{Style.RESET_ALL}")
+            
+            # Show threat intelligence
+            if 'threat_intel' in incident:
+                ti = incident['threat_intel']
+                threat_color = Fore.RED if ti['is_malicious'] else Fore.GREEN
+                print(f"Threat Intel: {threat_color}Abuse Score: {ti['abuse_score']}% | Country: {ti['country']} | {ti['isp']}{Style.RESET_ALL}")
+                if ti['is_malicious']:
+                    print(f"{Fore.RED}⚠️  Known malicious IP - {ti['total_reports']} previous reports{Style.RESET_ALL}")
+                if ti['is_tor']:
+                    print(f"{Fore.YELLOW}🕵️  TOR exit node detected{Style.RESET_ALL}")
+                if ti['is_vpn']:
+                    print(f"{Fore.YELLOW}🔒 VPN/Proxy detected{Style.RESET_ALL}")
+            
             print(f"\n{incident['ai_analysis']}\n")
             print(f"{Fore.CYAN}{'-'*80}{Style.RESET_ALL}\n")
     
@@ -91,8 +104,16 @@ class SecurityLogAnalyzer:
             
             for i, incident in enumerate(incidents, 1):
                 f.write(f"Incident #{i}: {incident['type']}\n")
-                f.write(f"Severity: {incident['severity']}\n\n")
-                f.write(incident['ai_analysis'] + "\n\n")
+                f.write(f"Severity: {incident['severity']}\n")
+                
+                # Add threat intel to report
+                if 'threat_intel' in incident:
+                    ti = incident['threat_intel']
+                    f.write(f"Threat Intel: Abuse Score {ti['abuse_score']}% | Country: {ti['country']} | ISP: {ti['isp']}\n")
+                    if ti['is_malicious']:
+                        f.write(f"WARNING: Known malicious IP - {ti['total_reports']} reports\n")
+                
+                f.write(f"\n{incident['ai_analysis']}\n\n")
                 f.write("-" * 80 + "\n\n")
         
         # Save JSON data

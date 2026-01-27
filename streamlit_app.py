@@ -2,6 +2,7 @@ import streamlit as st
 from datetime import datetime
 from log_parser import AdvancedLogParser
 from correlator import EventCorrelator
+from threat_intel import ThreatIntelligence
 
 # Page config
 st.set_page_config(

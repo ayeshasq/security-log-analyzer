@@ -1,30 +1,29 @@
 from collections import defaultdict
 from typing import List, Dict
+from threat_intel import ThreatIntelligence
 
 class EventCorrelator:
     """Advanced event correlation for enterprise attacks"""
     
     def __init__(self):
         self.brute_force_threshold = 3
-        self.time_window = 300  # 5 minutes
+        self.time_window = 300
+        self.threat_intel = ThreatIntelligence()
     
     def correlate_events(self, parsed_logs: List[Dict]) -> List[Dict]:
         """Correlate events to detect sophisticated attacks"""
         
         incidents = []
         
-        # Group by source IP
         ip_events = defaultdict(list)
         for log in parsed_logs:
             for ip in log.get('ips', []):
                 ip_events[ip].append(log)
             
-            # Also track by user if in KV data
             user = log.get('kv_data', {}).get('user')
             if user:
                 ip_events[f"user:{user}"].append(log)
         
-        # Detect Brute Force Attacks
         for key, events in ip_events.items():
             failed_logins = [e for e in events if e['event_type'] == 'FAILED_LOGIN']
             
@@ -45,7 +44,6 @@ class EventCorrelator:
                     ]
                 })
         
-        # Detect Port Scans
         for ip, events in ip_events.items():
             if ip.startswith('user:'):
                 continue
@@ -70,7 +68,6 @@ class EventCorrelator:
                     ]
                 })
         
-        # Detect Ransomware/Malware
         ransomware_events = [e for e in parsed_logs if e['event_type'] == 'RANSOMWARE']
         malware_events = [e for e in parsed_logs if e['event_type'] == 'MALWARE']
         
@@ -110,7 +107,6 @@ class EventCorrelator:
                 ]
             })
         
-        # Detect MFA Bypass
         mfa_bypass = [e for e in parsed_logs if e['event_type'] == 'MFA_BYPASS']
         if mfa_bypass:
             incidents.append({
@@ -129,7 +125,6 @@ class EventCorrelator:
                 ]
             })
         
-        # Detect Privilege Escalation
         priv_esc = [e for e in parsed_logs if e['event_type'] == 'PRIVILEGE_ESCALATION']
         if priv_esc:
             incidents.append({
@@ -148,12 +143,10 @@ class EventCorrelator:
                 ]
             })
         
-        # Detect Cloud Credential Abuse
         cloud_failures = [e for e in parsed_logs if e['event_type'] == 'CLOUD_LOGIN_FAILURE']
         cred_creation = [e for e in parsed_logs if e['event_type'] == 'CREDENTIAL_CREATION']
         
         if cloud_failures and cred_creation:
-            # Check if from same IP
             failure_ips = set()
             for event in cloud_failures:
                 failure_ips.update(event.get('ips', []))
@@ -181,5 +174,9 @@ class EventCorrelator:
                         'Review IAM policies'
                     ]
                 })
+        
+        # Enrich with threat intelligence
+        for incident in incidents:
+            incident = self.threat_intel.enrich_incident(incident)
         
         return incidents
