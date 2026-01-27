@@ -9,7 +9,7 @@ from typing import List, Dict
 import os
 
 class PDFReportGenerator:
-    """Generate professional PDF security reports"""
+    """Generate professional PDF security reports and graphs where necessary"""
     
     def __init__(self):
         self.styles = getSampleStyleSheet()
