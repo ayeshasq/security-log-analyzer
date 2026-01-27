@@ -9,6 +9,50 @@ class EventCorrelator:
         self.brute_force_threshold = 3
         self.time_window = 300
         self.threat_intel = ThreatIntelligence()
+
+    def calculate_risk_score(self, incident: Dict) -> int:
+        """Calculate risk score 0-100"""
+        score = 0
+        
+        # Base severity score
+        severity_scores = {
+            'CRITICAL': 100,
+            'HIGH': 75,
+            'MEDIUM': 50,
+            'LOW': 25
+        }
+        score += severity_scores.get(incident.get('severity', 'LOW'), 25)
+        
+        # Volume multiplier (more events = higher risk)
+        event_count = incident.get('event_count', 1)
+        if event_count >= 10:
+            score += 20
+        elif event_count >= 5:
+            score += 10
+        elif event_count >= 3:
+            score += 5
+        
+        # Attack type weight
+        high_risk_types = ['RANSOMWARE', 'MALWARE', 'CLOUD_CREDENTIAL_ABUSE']
+        medium_risk_types = ['BRUTE_FORCE', 'MFA_BYPASS', 'PRIVILEGE_ESCALATION']
+        
+        if any(risk_type in incident.get('type', '') for risk_type in high_risk_types):
+            score += 15
+        elif any(risk_type in incident.get('type', '') for risk_type in medium_risk_types):
+            score += 10
+        
+        # Threat intelligence boost
+        if 'threat_intel' in incident:
+            ti = incident['threat_intel']
+            if ti.get('is_malicious'):
+                score += int(ti.get('abuse_score', 0) * 0.2)  # Add up to 20 points
+            if ti.get('is_tor'):
+                score += 10
+            if ti.get('is_vpn'):
+                score += 5
+        
+        # Cap at 100
+        return min(score, 100)
     
     def correlate_events(self, parsed_logs: List[Dict]) -> List[Dict]:
         """Correlate events to detect sophisticated attacks"""
@@ -175,8 +219,9 @@ class EventCorrelator:
                     ]
                 })
         
-        # Enrich with threat intelligence
+        # Enrich with threat intelligence and calculate risk
         for incident in incidents:
             incident = self.threat_intel.enrich_incident(incident)
+            incident['risk_score'] = self.calculate_risk_score(incident)
         
         return incidents

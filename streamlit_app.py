@@ -135,11 +135,25 @@ with tab1:
                                 st.markdown(f"**Severity:** {inc['severity']}")
                                 st.markdown(f"**Source:** {inc.get('source_ip', 'N/A')}")
                                 
-                            with col_b:
+                                                            st.markdown(f"**Event Count:** {inc['event_count']}")
+                                if inc.get('mitre'):with col_b:
                                 st.markdown(f"**Event Count:** {inc['event_count']}")
                                 if inc.get('mitre'):
                                     st.markdown(f"**MITRE ATT&CK:** {inc['mitre']}")
-                            
+                     # Display risk score
+                            if inc.get('risk_score'):
+                                risk_score = inc['risk_score']
+                                if risk_score >= 80:
+                                    risk_color = "🔴"
+                                elif risk_score >= 60:
+                                    risk_color = "🟡"
+                                else:
+                                    risk_color = "🟢"
+                                
+                                st.markdown("---")
+                                st.metric("Risk Score", f"{risk_score}/100 {risk_color}", 
+                                         help="Calculated based on severity, volume, attack type, and threat intelligence")       
+                     
                             st.markdown("---")
                             st.markdown("**Description:**")
                             st.info(inc['description'])
