@@ -3,7 +3,7 @@ from typing import List, Dict
 from threat_intel import ThreatIntelligence
 
 class EventCorrelator:
-    """Advanced event correlation for enterprise attacks"""
+    """Step1 Advanced event correlation for enterprise attacks"""
     
     def __init__(self):
         self.brute_force_threshold = 3
@@ -41,7 +41,7 @@ class EventCorrelator:
         elif any(risk_type in incident.get('type', '') for risk_type in medium_risk_types):
             score += 10
         
-        # Threat intelligence boost
+        # Threat intelligence boost done
         if 'threat_intel' in incident:
             ti = incident['threat_intel']
             if ti.get('is_malicious'):
