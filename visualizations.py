@@ -9,7 +9,7 @@ class SecurityVisualizer:
     """Create visualizations for security incidents"""
     
     def create_timeline(self, incidents: List[Dict]) -> str:
-        """Create attack timeline visualization"""
+        """Create attack timeline visualization with plot graphs"""
         
         if not incidents:
             return None
