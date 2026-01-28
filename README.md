@@ -57,26 +57,6 @@ This analyzer automates security log analysis tasks that traditionally take SOC 
 - Python 3.11+
 - Anthropic API key (for AI analysis)
 
-### Installation
-```bash
-# Clone repository
-git clone https://github.com/ayeshasq/security-log-analyzer.git
-cd security-log-analyzer
-
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip3 install -r requirements.txt
-
-# Configure API key
-echo "ANTHROPIC_API_KEY=your_api_key_here" > .env
-
-# Run analyzer
-python3 main.py
-```
-
 ### Basic Usage
 ```python
 from main import SecurityLogAnalyzer
@@ -186,33 +166,6 @@ security-log-analyzer/
 ```
 
 ---
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-Create a `.env` file:
-```
-ANTHROPIC_API_KEY=your_api_key_here
-ABUSEIPDB_API_KEY=optional_threat_intel_key
-ALERT_EMAIL=security-alerts@company.com
-```
-
-### Mock Mode
-
-For testing without API costs, the tool includes mock mode:
-- Set `use_mock = True` in `ai_analyzer.py` and `threat_intel.py`
-- Generates realistic sample responses without API calls
-
----
-
-## 🌐 Deployment
-
-### Web Application
-
-The tool includes a Streamlit web interface for interactive analysis:
-```bash
-streamlit run streamlit_app.py
 ```
 
 **Live Demo:** https://security-log-analyzer-cyberproject.streamlit.app
@@ -286,12 +239,6 @@ Contributions are welcome. Areas for improvement:
 - Performance optimizations
 - Documentation enhancements
 - Test coverage expansion
-
----
-
-## 📄 License
-
-MIT License - See LICENSE file for details
 
 ---
 
