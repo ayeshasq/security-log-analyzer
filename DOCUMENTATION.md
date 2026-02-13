@@ -18,10 +18,12 @@ RAM: Minimum 2GB, 4GB recommended
 Disk Space: 500MB for dependencies and outputs
 Network: Internet connection for API calls
 Step-by-Step Installation
+
 1. Clone Repository
 bash
 git clone https://github.com/ayeshasq/security-log-analyzer.git
 cd security-log-analyzer
+
 2. Create Virtual Environment
 macOS/Linux:
 bash
@@ -31,6 +33,7 @@ Windows:
 bash
 python -m venv venv
 venv\Scripts\activate
+
 3. Install Dependencies
 bash
 pip3 install -r requirements.txt
@@ -41,6 +44,7 @@ numpy==1.26.2 - Numerical computing
 python-dotenv==1.0.0 - Environment variable management
 regex==2023.12.25 - Advanced pattern matching
 colorama==0.4.6 - Colored terminal output
+
 4. Configure API Credentials
 Create .env file:
 bash
@@ -52,6 +56,7 @@ Navigate to "API Keys" section
 Click "Create Key"
 Copy the generated key (starts with sk-ant-)
 Paste into .env file
+
 5. Verify Installation
 bash
 python3 -c "from anthropic import Anthropic; print('✓ Installation successful')"
@@ -63,25 +68,6 @@ bash
 # Required
 ANTHROPIC_API_KEY=sk-ant-api03-xxxxx
 
-# Optional
-LOG_LEVEL=INFO
-MAX_TOKENS=1500
-MOCK_MODE=False
-Application Settings
-Edit settings in ai_analyzer.py:
-python
-class AIAnalyzer:
-    def __init__(self):
-        self.use_mock = False  # Set True for testing without API
-        self.model = "claude-sonnet-4-20250514"
-        self.max_tokens = 1000
-Edit settings in correlator.py:
-python
-class EventCorrelator:
-    def __init__(self):
-        self.correlation_window = 300  # Time window in seconds
-        self.brute_force_threshold = 3  # Min failed logins
-Usage Examples
 Basic Usage
 bash
 # Run on default sample data
