@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import List, Dict
 import os
 
+
 class PDFReportGenerator:
     """Generate professional PDF security reports and graphs where necessary"""
     
